@@ -80,3 +80,36 @@
   The replicas cache the data from the client and wait for the serial designated by the primary.
 
   Data is pushed linearly to avoid bottleneck in networks.
+
+- Pipeline the data transfer over TCP connections.
+
+- **Copy-on-write** technique is used in snapshot.
+
+### Master Operation
+
+#### Namespace Management and Locking
+
+- GFS **does not have a per-directory data structure** to store the metadata.
+- A set of locks are acquired before the master runs. If it involves `/d1/d2/.../dn/leaf`, it will acquire read-locks on `/d1`, `/d1/d2` and either a write or a read lock on the leaf.
+- Advantages: Multiple operations may be run concurrently.
+
+#### Replica Placement, Creation, Re-replication, Rebalancing
+
+- We want to place new replicas on chunk servers with below-average disk space utilization.
+- We want to limit the number of “recent” creations on each chunk server.
+- We want to spread replicas of a chunk across racks.
+
+
+
+- The master re-replicates a chunk as soon as the number of available replicas falls below a user-specified goal. (when some machines fail, etc.)
+- Priority is evaluated when there are several chunks to be re-replicated.
+
+
+
+- Finally, the master rebalances replicas periodically.
+
+#### Garbage Collection
+
+- When a file is deleted,  it will be renamed to be a hidden name. After some time, the system will scan the disk and reclaim the resource.
+- The deleted file can be undeleted before the system reclaims the resource by renaming it with a usual name.
+
