@@ -1,4 +1,4 @@
-# ChargeCache: Reducing DRAM Latency by Exploiting Row Access Locality
+## ChargeCache: Reducing DRAM Latency by Exploiting Row Access Locality
 
 ### Introduction
 
@@ -27,7 +27,7 @@
 
   Using shorter bit-lines may lead to much higher cost of the DRAM.
 
-  ![DRAM subarray](./images/ChargeCache/DRAM subarray.png)
+  ![DRAM subarray](images/ChargeCache/DRAM_subarray.png)
 
 - Key observations:
   - Many applications tend to access rows that were recently closed (temporal locality). A DRAM row **remains in a highly-charged state** when accessed for the second time within a short interval after the prior access.
@@ -35,7 +35,7 @@
 
 ### How data is accessed in DRAM
 
-![access](./images/ChargeCache/DRAM access.png)
+![access](images/ChargeCache/DRAM_access.png)
 
 - Common steps
 
@@ -52,3 +52,27 @@
   - However, cells closer to the fully-charged state **can be accessed with lower activation latency**.
 - Recent work: when a row needs to be activated, the memory controller determines when the row was last refreshed. If the row was refreshed recently (e.g., within 8ms), the controller uses a lower tRCD and tRAS for the activation.
   - Only 12% of all memory accesses can be improved.
+  - However, 86% of the memory accesses have temporal locality on rows.
+
+### ChargeCache
+
+- High-level design:
+  - Add a small table to the memory controller that tracks the addresses of recently-accessed DRAM rows.
+  - When a precharge command is issued to a bank, ChargeCache inserts the address of the row that was activated in the corresponding bank to the table.
+  - when an activate command is issued, ChargeCache checks if the corresponding row address is present in the table. If so, it employs the reduced timing parameters; otherwise the standard ones.
+  - ChargeCache invalidates entries from the table to ensure that rows corresponding to valid entries can indeed be accessed with lower access latency.
+- Details:
+  - Organize HCRAC (Highly-Charged Row Address Cache) as a set-associative structure similar to the processor caches.
+  - When a new row address is inserted, ChargeCache may have to evict an already valid entry from the HCRAC. While it may result in wasted chances to reduce latency, evaluations show that even a small(128-entry) cache can provide significant improvement.
+  - Use two counters to evaluate whether an entry needs to be invalidated.
+  - On each ACT command, ChargeCache looks up the  corresponding row address in the HCRAC. If hit, the timing parameters are reduced.
+
+### Evaluations
+
+- Time performance:
+  - Single core: 2.1% speed-up on average (up to 9.3%).
+  - Eight cores: 8.6% speed-up on average.
+- Energy:
+  - Reduces energy consumption by up to 6.9% (14.1%) and on average 1.8% (7.9%) for single-core (eight-core) workloads.
+- Temperature independence
+- Applicability to other DRAM standards
