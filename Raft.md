@@ -68,4 +68,22 @@
 
   - Append-Entries RPC
   - Request-Vote RPC
-  - 
+
+##### Details
+
+- Leader election:
+  - Detection:
+    - Leaders send heartbeats to all followers to maintain the authority.
+    - If a follower receives no communications over a period of time, then it begins an election.
+    - The follower **increments its current term**, **transitions to candidate state**, votes for itself and issues *Request-Vote RPC*s to all of others.
+  - Process:
+    - A candidate wins an election if it receives votes from a majority of the servers **for the same term**. Each server will **vote for at most one** candidate in a given term, following first-come-first-served.
+    - If a candidate receives an Append-Entries RPC from another server claiming to be the leader, it accepts and transitions to be a follower if the caller's term is not smaller than its own; otherwise rejects.
+    - If timeout and no one wins the election (votes split), the candidate increments its current term and starts another election. To avoid endless loop, Raft use **randomized election timeouts**.
+
+- Log replication
+  - When receiving requests from clients, the leader appends the command to its log, and issues Append-Entries RPCs to all others servers. If followers crash or run slowly, or the network packet is lost, the leader retries indefinitely until all followers store all log entries.
+  - A log entry in committed once the leader has replicated it on a majority of the machines. The commit also **includes all preceding entries** in the leader's log. 
+  - Log Matching Property:
+    - • If two entries in different logs have the same index and term, then they store the same command.
+    -  If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.
