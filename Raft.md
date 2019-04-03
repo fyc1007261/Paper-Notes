@@ -80,10 +80,20 @@
     - A candidate wins an election if it receives votes from a majority of the servers **for the same term**. Each server will **vote for at most one** candidate in a given term, following first-come-first-served.
     - If a candidate receives an Append-Entries RPC from another server claiming to be the leader, it accepts and transitions to be a follower if the caller's term is not smaller than its own; otherwise rejects.
     - If timeout and no one wins the election (votes split), the candidate increments its current term and starts another election. To avoid endless loop, Raft use **randomized election timeouts**.
-
 - Log replication
   - When receiving requests from clients, the leader appends the command to its log, and issues Append-Entries RPCs to all others servers. If followers crash or run slowly, or the network packet is lost, the leader retries indefinitely until all followers store all log entries.
   - A log entry in committed once the leader has replicated it on a majority of the machines. The commit also **includes all preceding entries** in the leader's log. 
-  - Log Matching Property:
-    - • If two entries in different logs have the same index and term, then they store the same command.
-    -  If two entries in different logs have the same index and term, then the logs are identical in all preceding entries.
+  - Log Matching Properties:
+    - If two entries in different logs have the same index and term, then they store the same command. (Because a leader
+      creates at most one entry with a given log index in a given
+      term, and log entries never change their position in the
+      log.)
+    - If two entries in different logs have the same index and term, then the logs are identical in all preceding entries. 
+  - The leader handles inconsistencies by forcing the followers’ logs to duplicate its own.
+- Ensuring safety
+  - Election restriction
+    - Log entries only flow in one direction, from leaders to followers, and leaders never overwrite existing entries in their logs.
+    - Request-Vote RPC includes information about the candidate’s log, and the voter **denies its vote** if its own log is more up-to-date than that of the candidate.
+    - Raft determines which of two logs is more up-to-date by comparing the index and term of the last entries in the logs. If the logs have last entries with different terms, then the log with the later term is more up-to-date. If the logs end with the same term, then whichever log is longer is more up-to-date.
+  - Entries from previous terms
+    - Raft never commits log entries from previous terms by counting replicas. Only log entries from the leader’s current term are committed by counting replicas.
