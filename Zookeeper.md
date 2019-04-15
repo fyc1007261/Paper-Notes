@@ -28,3 +28,11 @@
     - The leader deletes *ready*, change the configuration and then creates *ready*. 
     - Special case 1: a process sees that *ready* exists before the new leader starts to make a change. Ordering guarantee for the notifications is involved. The client will be notified before it can read any of the new configuration.
     - Special case 2: Clients may share other communication channels other than ZooKeeper. Use `sync` operation, which causes a server to apply all pending writes before processing the read without the overhead of a full write.
+
+### ZooKeeper Implementation
+
+- The replicated database is an **in-memory** database containing the entire data tree.
+
+- For recoverability, log updates to disk. Force writes to be on the disk before they are applied to the in-memory database.
+
+- A leader and some followers.
