@@ -26,3 +26,21 @@
   - CM assigns a region identifier.
   - CM sends a prepare message to the selected replicas with the region identifier.
   - If all replicas success, the CM sends a commit message to all of them.
+
+### Distributed Transactions and Replication
+
+- FaRM uses primary-backup replication. In the execution phase, the coordinator **reads** information including the data and versions from the primaries.
+
+- ![commit protocol](images/FaRM/commit.png)
+
+  - Lock: The coordinator writes a LOCK record on each machine that is a primary for any written object. The LOCK operation attempts to lock the objects at the specified versions. 
+
+    LOCK may fail if any object version changed since if was read by the transaction or the object has been locked by others. If it fails, the coordinator returns error to the client and aborts the transaction.
+
+  - Validate: The coordinator performs read validation by  reading, from their primaries, the versions of all objects that were **read but not written** by the transaction. If any objects has changed, validation fails.
+
+  - Commit backups: The coordinator writes a COMMIT-BACKUP record to the non-volatile logs at each backup and then waits for an ack from the NIC hardware.
+
+  - Commit primaries: After all commit backups are *ack*ed, the coordinator sends a COMMIT-PRIMARY to the logs to each primary. 
+
+    Primaries process these records by updating the objects in place, incrementing the versions and unlocking them.
