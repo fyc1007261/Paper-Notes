@@ -40,6 +40,7 @@
 - Benefits
 
   ![Comparison](images/Spark/comparison.png)
+
   - Lineage: No overhead of checkpointing. Only the lost partitions of and RDD need to be recomputed upon failure, and they can be recomputed in parallel on different nodes, **without having to rollback the whole program**.
 
 - Limitations of RDDs
@@ -52,4 +53,19 @@
 ![runtime](images/Spark/runtime.png)
 
 - The driver defines one or more RDDs and invokes actions on them. Spark code on the driver also tracks the RDDs’ lineage. The workers are long-lived processes that can store RDD partitions in RAM across operations.
-- 
+
+### Implementation
+
+##### Job Scheduling
+
+- It takes into account which partitions of the persistent RDDs are available in memory.
+- Our scheduler assigns tasks to machines based on data locality using delay scheduling. If a task needs to process a partition that is available in memory on a node, we send it to that node. Otherwise, if a task processes a partition for which the containing RDD provides preferred locations (e.g., an HDFS file), we send it to those.
+
+##### Memory Management
+
+- Three ways to store persistent RDDs
+  - In-memory as Java objects: fastest
+  - In-memory as serialized data: slower but memory-efficient when space is limited.
+  - On-disk: slowest. Only for data to large to be kept in memory.
+- LRU to evict least recently used RDDs. **(Whether just delete them or store them on the disk???)**
+
