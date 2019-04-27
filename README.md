@@ -11,6 +11,7 @@ Here are the notes taken when reading the following papers.
 - Raft [Paper](papers/raft-extended.pdf)  [Notes](./Raft.md)
 - ChargeCache-Reducing DRAM Latency [Paper](papers/chargecache_low-latency-dram_hpca16.pdf) [Notes](ChargeCache-ReducingDRAMLatency.md)
 - FaRM (Optimistic Concurrency Control) [Paper](papers/farm-2015.pdf) [Notes](FaRM.md)
+- Spark [Paper](papers/spark.pdf) [Notes](Spark.md)
 
 
 
