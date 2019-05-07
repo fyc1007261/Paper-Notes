@@ -49,6 +49,8 @@
 
   - When a chunk joins, it sends the information about what chunks it has.
 
+- There are no per-directory data structures. Therefore, it is inefficient to delete a directory or rename a directory (have to go through the whole table).
+
 ### Consistency
 
 - A file region is consistent if all clients will always see the same data, regardless of which replicas they read from. 
