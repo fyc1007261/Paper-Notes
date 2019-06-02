@@ -14,4 +14,4 @@ Here are the notes taken when reading the following papers.
 - Spark [Paper](papers/spark.pdf) [Notes](Spark.md)
 - Naiad [Paper](papers/naiad.pdf) [Notes](Naiad.md)
 - GraphLab [Paper](papers/GraphLab2010.pdf) [Notes](GraphLab2010.md)
-
+- Distributed GraphLab [Paper](papers/GraphLab2012.pdf) [Notes](GraphLab2012.md)
